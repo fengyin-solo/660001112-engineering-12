@@ -1,7 +1,24 @@
 import { create } from 'zustand';
 import { EEGData, BandPower, BrainState, CorrelationData, Recording, RecordingFrame, PlaybackState } from '../types';
+import { DEFAULT_CHANNEL, isKnownChannel } from '../config/channels';
 
 const STORAGE_KEY = 'eeg_recordings';
+const SELECTED_CHANNEL_STORAGE_KEY = 'eeg_selected_channel';
+
+const loadSelectedChannel = (): string => {
+  try {
+    const stored = localStorage.getItem(SELECTED_CHANNEL_STORAGE_KEY);
+    return stored && isKnownChannel(stored) ? stored : DEFAULT_CHANNEL;
+  } catch {
+    return DEFAULT_CHANNEL;
+  }
+};
+
+const saveSelectedChannel = (channel: string) => {
+  try {
+    localStorage.setItem(SELECTED_CHANNEL_STORAGE_KEY, channel);
+  } catch {}
+};
 
 const loadRecordings = (): Recording[] => {
   try {
@@ -21,6 +38,7 @@ const saveRecordings = (recordings: Recording[]) => {
 interface EEGState {
   eegData: EEGData | null;
   selectedChannel: string;
+  liveSelectedChannel: string;
   bandPower: BandPower | null;
   isStreaming: boolean;
   brainState: BrainState | null;
@@ -51,7 +69,8 @@ interface EEGState {
 
 export const useEEGStore = create<EEGState>((set, get) => ({
   eegData: null,
-  selectedChannel: 'Fp1',
+  selectedChannel: loadSelectedChannel(),
+  liveSelectedChannel: loadSelectedChannel(),
   bandPower: null,
   isStreaming: false,
   brainState: null,
@@ -68,7 +87,11 @@ export const useEEGStore = create<EEGState>((set, get) => ({
     currentFrame: null,
   },
   setEEGData: (d) => set({ eegData: d }),
-  setChannel: (c) => set({ selectedChannel: c }),
+  setChannel: (c) => {
+    if (get().playbackMode || !isKnownChannel(c)) return;
+    saveSelectedChannel(c);
+    set({ selectedChannel: c, liveSelectedChannel: c });
+  },
   setBandPower: (b) => set({ bandPower: b }),
   setStreaming: (v) => set({ isStreaming: v }),
   setBrainState: (s) => set({ brainState: s }),
@@ -81,6 +104,7 @@ export const useEEGStore = create<EEGState>((set, get) => ({
       currentRecordingFrames: [],
       playbackMode: false,
       activeRecording: null,
+      selectedChannel: get().liveSelectedChannel,
     });
   },
   stopRecording: (name: string) => {
@@ -121,7 +145,7 @@ export const useEEGStore = create<EEGState>((set, get) => ({
     saveRecordings(recordings);
     const { activeRecording } = get();
     if (activeRecording?.id === id) {
-      set({ recordings, playbackMode: false, activeRecording: null });
+      set({ recordings, playbackMode: false, activeRecording: null, selectedChannel: get().liveSelectedChannel });
     } else {
       set({ recordings });
     }
@@ -131,6 +155,7 @@ export const useEEGStore = create<EEGState>((set, get) => ({
     set({
       playbackMode: true,
       activeRecording: recording,
+      selectedChannel: recording.channel,
       playbackState: {
         isPlaying: false,
         currentTime: 0,
@@ -146,6 +171,7 @@ export const useEEGStore = create<EEGState>((set, get) => ({
     set({
       playbackMode: false,
       activeRecording: null,
+      selectedChannel: get().liveSelectedChannel,
       playbackState: {
         isPlaying: false,
         currentTime: 0,

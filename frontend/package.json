@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "validate:channels": "node scripts/validate-channels.mjs",
+    "dev": "npm run validate:channels && vite",
+    "prebuild": "npm run validate:channels",
     "build": "tsc -b && vite build"
   },
   "dependencies": {

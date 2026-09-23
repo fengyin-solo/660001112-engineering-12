@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEEGStore } from '../store/eeg';
 import { Recording } from '../types';
-
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
+import { getChannelColor, getChannelDisplayName } from '../config/channels';
 
 const formatDuration = (seconds: number): string => {
   const mins = Math.floor(seconds / 60);
@@ -163,7 +158,7 @@ export const RecordingPanel: React.FC = () => {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               <span style={{ fontSize: '16px' }}>⏺</span>
-              开始录制 ({CHANNEL_NAMES[selectedChannel] || selectedChannel})
+              开始录制 ({getChannelDisplayName(selectedChannel)})
             </button>
           ) : (
             <div>
@@ -230,7 +225,11 @@ export const RecordingPanel: React.FC = () => {
                 {activeRecording.name}
               </div>
               <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
-                {CHANNEL_NAMES[activeRecording.channel] || activeRecording.channel} · {formatDuration(activeRecording.duration)}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: getChannelColor(activeRecording.channel) }} />
+                  {getChannelDisplayName(activeRecording.channel)}
+                </span>
+                <span> · {formatDuration(activeRecording.duration)}</span>
               </div>
             </div>
             <button
@@ -415,7 +414,11 @@ export const RecordingPanel: React.FC = () => {
                       {recording.name}
                     </div>
                     <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                      {formatTime(recording.startTime)} · {CHANNEL_NAMES[recording.channel] || recording.channel}
+                      {formatTime(recording.startTime)} ·{' '}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: getChannelColor(recording.channel) }} />
+                        {getChannelDisplayName(recording.channel)}
+                      </span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>

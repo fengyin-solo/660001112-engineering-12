@@ -1,16 +1,11 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { useEEGStore } from '../store/eeg';
-
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
+import { getChannelDisplayName } from '../config/channels';
 
 export const CorrelationChart: React.FC = () => {
   const { correlationData, selectedChannel, playbackMode } = useEEGStore();
-  const channelName = CHANNEL_NAMES[selectedChannel] || selectedChannel;
+  const channelName = getChannelDisplayName(selectedChannel);
 
   if (!correlationData) {
     return (
@@ -30,7 +25,7 @@ export const CorrelationChart: React.FC = () => {
     .filter(c => c.channel !== selectedChannel)
     .map(c => ({
       name: c.channel,
-      nameCn: CHANNEL_NAMES[c.channel] || c.channel,
+      nameCn: getChannelDisplayName(c.channel),
       correlation: Math.abs(c.correlation) * 100,
       coherence: c.coherence * 100,
       isTarget: c.channel === selectedChannel
@@ -70,7 +65,7 @@ export const CorrelationChart: React.FC = () => {
               `${value.toFixed(1)}%`,
               name === 'correlation' ? '相关性' : '相干性'
             ]}
-            labelFormatter={(label: string) => `${label} (${CHANNEL_NAMES[label] || label})`}
+            labelFormatter={(label: string) => `${label} (${getChannelDisplayName(label)})`}
           />
           <Legend wrapperStyle={{ fontSize: '11px' }} />
           <Bar dataKey="correlation" name="相关性" radius={[4, 4, 0, 0]}>

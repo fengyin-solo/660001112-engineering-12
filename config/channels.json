@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "defaultChannel": "Fp1",
+  "channels": [
+    { "code": "Fp1", "displayName": "左前额", "color": "#1565C0" },
+    { "code": "Fp2", "displayName": "右前额", "color": "#00838F" },
+    { "code": "F3", "displayName": "左额", "color": "#2E7D32" },
+    { "code": "F4", "displayName": "右额", "color": "#689F38" },
+    { "code": "C3", "displayName": "左中央", "color": "#6A1B9A" },
+    { "code": "C4", "displayName": "右中央", "color": "#AD1457" },
+    { "code": "P3", "displayName": "左顶", "color": "#EF6C00" },
+    { "code": "P4", "displayName": "右顶", "color": "#C62828" },
+    { "code": "O1", "displayName": "左枕", "color": "#5D4037" },
+    { "code": "O2", "displayName": "右枕", "color": "#455A64" }
+  ]
+}

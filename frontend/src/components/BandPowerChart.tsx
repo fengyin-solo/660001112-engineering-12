@@ -1,18 +1,14 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useEEGStore } from '../store/eeg';
+import { getChannelDisplayName } from '../config/channels';
 
 const COLORS = ['#1565c0','#2e7d32','#f9a825','#e53935','#6a1b9a'];
 const LABELS = ['Delta','Theta','Alpha','Beta','Gamma'];
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
 
 export const BandPowerChart: React.FC = () => {
   const { bandPower, selectedChannel, playbackMode } = useEEGStore();
-  const channelName = CHANNEL_NAMES[selectedChannel] || selectedChannel;
+  const channelName = getChannelDisplayName(selectedChannel);
 
   if (!bandPower) {
     return (
