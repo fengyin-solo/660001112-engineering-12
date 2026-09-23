@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEEGStore } from '../store/eeg';
 import { Recording } from '../types';
-
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
+import { getChannelColor, getChannelDisplayName } from '../config/channels';
 
 const formatDuration = (seconds: number): string => {
   const mins = Math.floor(seconds / 60);
@@ -45,6 +40,7 @@ export const RecordingPanel: React.FC = () => {
   const [recordingName, setRecordingName] = useState('');
   const [showNameDialog, setShowNameDialog] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const playbackChannelColor = activeRecording ? getChannelColor(activeRecording.channel) : '#1565c0';
   const timerRef = useRef<number | null>(null);
   const playbackTimerRef = useRef<number | null>(null);
 
@@ -163,7 +159,7 @@ export const RecordingPanel: React.FC = () => {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               <span style={{ fontSize: '16px' }}>⏺</span>
-              开始录制 ({CHANNEL_NAMES[selectedChannel] || selectedChannel})
+              开始录制 ({getChannelDisplayName(selectedChannel)})
             </button>
           ) : (
             <div>
@@ -226,11 +222,11 @@ export const RecordingPanel: React.FC = () => {
             marginBottom: '12px',
           }}>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1565c0' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: playbackChannelColor }}>
                 {activeRecording.name}
               </div>
               <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
-                {CHANNEL_NAMES[activeRecording.channel] || activeRecording.channel} · {formatDuration(activeRecording.duration)}
+                {getChannelDisplayName(activeRecording.channel)} · {formatDuration(activeRecording.duration)}
               </div>
             </div>
             <button
@@ -238,7 +234,7 @@ export const RecordingPanel: React.FC = () => {
               style={{
                 padding: '6px 12px',
                 background: '#fff',
-                color: '#1565c0',
+                color: playbackChannelColor,
                 border: '1px solid #90caf9',
                 borderRadius: '6px',
                 fontSize: '12px',
@@ -262,7 +258,7 @@ export const RecordingPanel: React.FC = () => {
                 width: '44px',
                 height: '44px',
                 borderRadius: '50%',
-                background: '#1565c0',
+                background: playbackChannelColor,
                 color: '#fff',
                 border: 'none',
                 fontSize: '18px',
@@ -291,7 +287,7 @@ export const RecordingPanel: React.FC = () => {
                 <div
                   style={{
                     height: '100%',
-                    background: '#1565c0',
+                    background: playbackChannelColor,
                     width: `${(playbackState.currentTime / activeRecording.duration) * 100}%`,
                     borderRadius: '4px',
                     transition: 'width 0.1s linear',
@@ -415,7 +411,7 @@ export const RecordingPanel: React.FC = () => {
                       {recording.name}
                     </div>
                     <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                      {formatTime(recording.startTime)} · {CHANNEL_NAMES[recording.channel] || recording.channel}
+                      {formatTime(recording.startTime)} · {getChannelDisplayName(recording.channel)}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>

@@ -1,23 +1,23 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { useEEGStore } from '../store/eeg';
-
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
+import { getChannelColor, getChannelDisplayName, getEffectiveChannelId } from '../config/channels';
 
 export const CorrelationChart: React.FC = () => {
-  const { correlationData, selectedChannel, playbackMode } = useEEGStore();
-  const channelName = CHANNEL_NAMES[selectedChannel] || selectedChannel;
+  const { correlationData, selectedChannel, playbackMode, activeRecording } = useEEGStore();
+  const activeChannelId = getEffectiveChannelId(
+    selectedChannel,
+    playbackMode ? activeRecording?.channel : correlationData?.targetChannel,
+  );
+  const channelName = getChannelDisplayName(activeChannelId);
+  const activeChannelColor = getChannelColor(activeChannelId);
 
   if (!correlationData) {
     return (
       <div style={{ padding: '16px', background: '#fff', borderRadius: '12px', margin: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <h3 style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '20px' }}>🔗</span>
-          <span>{selectedChannel}</span>
+          <span>{activeChannelId}</span>
           <span style={{ fontSize: '13px', color: '#666', fontWeight: 400 }}>{channelName} · 通道相关分析</span>
           {playbackMode && <span style={{ fontSize: '12px', color: '#1565c0', fontWeight: 500 }}>⏮ 回放中</span>}
         </h3>
@@ -27,10 +27,10 @@ export const CorrelationChart: React.FC = () => {
   }
 
   const chartData = correlationData.correlations
-    .filter(c => c.channel !== selectedChannel)
+    .filter(c => c.channel !== activeChannelId)
     .map(c => ({
       name: c.channel,
-      nameCn: CHANNEL_NAMES[c.channel] || c.channel,
+      nameCn: getChannelDisplayName(c.channel),
       correlation: Math.abs(c.correlation) * 100,
       coherence: c.coherence * 100,
       isTarget: c.channel === selectedChannel
@@ -70,7 +70,7 @@ export const CorrelationChart: React.FC = () => {
               `${value.toFixed(1)}%`,
               name === 'correlation' ? '相关性' : '相干性'
             ]}
-            labelFormatter={(label: string) => `${label} (${CHANNEL_NAMES[label] || label})`}
+            labelFormatter={(label: string) => `${label} (${getChannelDisplayName(label)})`}
           />
           <Legend wrapperStyle={{ fontSize: '11px' }} />
           <Bar dataKey="correlation" name="相关性" radius={[4, 4, 0, 0]}>
@@ -78,7 +78,7 @@ export const CorrelationChart: React.FC = () => {
               <Cell key={i} fill={getCorrelationColor(d.correlation)} />
             ))}
           </Bar>
-          <Bar dataKey="coherence" name="Alpha相干性" fill="#1565c0" radius={[4, 4, 0, 0]} opacity={0.7} />
+          <Bar dataKey="coherence" name="Alpha相干性" fill={activeChannelColor} radius={[4, 4, 0, 0]} opacity={0.7} />
         </BarChart>
       </ResponsiveContainer>
     </div>

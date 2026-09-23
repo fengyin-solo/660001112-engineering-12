@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "defaultChannelId": "Fp1",
+  "channels": [
+    { "id": "Fp1", "displayName": "左前额", "color": "#1565c0" },
+    { "id": "Fp2", "displayName": "右前额", "color": "#00838f" },
+    { "id": "F3", "displayName": "左额", "color": "#2e7d32" },
+    { "id": "F4", "displayName": "右额", "color": "#558b2f" },
+    { "id": "C3", "displayName": "左中央", "color": "#6a1b9a" },
+    { "id": "C4", "displayName": "右中央", "color": "#ad1457" },
+    { "id": "P3", "displayName": "左顶", "color": "#ef6c00" },
+    { "id": "P4", "displayName": "右顶", "color": "#8d6e63" },
+    { "id": "O1", "displayName": "左枕", "color": "#455a64" },
+    { "id": "O2", "displayName": "右枕", "color": "#c62828" }
+  ]
+}

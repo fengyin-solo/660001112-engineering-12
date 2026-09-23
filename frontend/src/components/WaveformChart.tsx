@@ -3,14 +3,13 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useEEGStore } from '../store/eeg';
 import { EEGData, BandPower, BrainState, CorrelationData } from '../types';
 import axios from 'axios';
+import {
+  CHANNELS,
+  getChannelColor,
+  getChannelDisplayName,
+  getEffectiveChannelId,
+} from '../config/channels';
 
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
-
-const ALL_CHANNELS = ['Fp1', 'Fp2', 'F3', 'F4', 'C3', 'C4', 'P3', 'P4', 'O1', 'O2'];
 const SAMPLE_RATE = 256;
 
 const generateMockEEG = (durationSec: number = 3.0): EEGData => {
@@ -20,7 +19,7 @@ const generateMockEEG = (durationSec: number = 3.0): EEGData => {
   for (let i = 0; i < length; i++) {
     time.push(i / SAMPLE_RATE);
   }
-  for (const ch of ALL_CHANNELS) {
+  for (const ch of CHANNELS) {
     const sig: number[] = [];
     const alphaFreq = 8 + Math.random() * 4;
     const betaFreq = 15 + Math.random() * 10;
@@ -33,7 +32,7 @@ const generateMockEEG = (durationSec: number = 3.0): EEGData => {
     }
     data[ch] = sig;
   }
-  return { channels: ALL_CHANNELS, sample_rate: SAMPLE_RATE, data, time, duration: durationSec };
+  return { channels: CHANNELS, sample_rate: SAMPLE_RATE, data, time, duration: durationSec };
 };
 
 const computeBandPower = (): BandPower => {
@@ -80,7 +79,7 @@ const computeBrainState = (bands: BandPower): BrainState => {
 
 const computeCorrelation = (targetChannel: string, eegData: EEGData): CorrelationData => {
   const targetData = eegData.data[targetChannel];
-  const correlations = ALL_CHANNELS.map(ch => {
+  const correlations = CHANNELS.map(ch => {
     if (ch === targetChannel) {
       return { channel: ch, targetChannel, correlation: 1.0, coherence: 1.0 };
     }
@@ -109,10 +108,15 @@ const computeCorrelation = (targetChannel: string, eegData: EEGData): Correlatio
 export const WaveformChart: React.FC = () => {
   const {
     eegData, selectedChannel, setEEGData, setBandPower, setBrainState, setCorrelationData,
-    isRecording, addRecordingFrame, playbackMode,
+    isRecording, addRecordingFrame, playbackMode, activeRecording,
   } = useEEGStore();
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<number | null>(null);
+  const activeChannelId = getEffectiveChannelId(
+    selectedChannel,
+    playbackMode ? activeRecording?.channel : undefined,
+  );
+  const activeChannelColor = getChannelColor(activeChannelId);
 
   const fetchEEG = async () => {
     const state = useEEGStore.getState();
@@ -154,19 +158,19 @@ export const WaveformChart: React.FC = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [selectedChannel, playbackMode]);
+  }, [selectedChannel, activeChannelId, playbackMode]);
 
-  const chartData = eegData?.data[selectedChannel]?.map((v: number, i: number) => ({
+  const chartData = eegData?.data[activeChannelId]?.map((v: number, i: number) => ({
     t: eegData.time[i]?.toFixed(3), value: v.toFixed(4)
   })) || [];
 
-  const channelName = CHANNEL_NAMES[selectedChannel] || selectedChannel;
+  const channelName = getChannelDisplayName(activeChannelId);
 
   return (
     <div style={{ padding: '16px', background: '#fff', borderRadius: '12px', margin: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
       <h3 style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '20px' }}>📈</span>
-        <span>{selectedChannel}</span>
+        <span>{activeChannelId}</span>
         <span style={{ fontSize: '13px', color: '#666', fontWeight: 400 }}>{channelName} · 波形图</span>
         {isRecording && (
           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#d32f2f', fontWeight: 500 }}>
@@ -182,7 +186,7 @@ export const WaveformChart: React.FC = () => {
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData}>
           <XAxis dataKey="t" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip />
-          <Line type="monotone" dataKey="value" stroke="#1565c0" dot={false} strokeWidth={1.5} />
+          <Line type="monotone" dataKey="value" stroke={activeChannelColor} dot={false} strokeWidth={1.5} />
         </LineChart>
       </ResponsiveContainer>
     </div>

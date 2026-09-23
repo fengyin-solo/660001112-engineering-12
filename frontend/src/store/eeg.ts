@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { EEGData, BandPower, BrainState, CorrelationData, Recording, RecordingFrame, PlaybackState } from '../types';
+import { DEFAULT_CHANNEL_ID } from '../config/channels';
 
 const STORAGE_KEY = 'eeg_recordings';
 
@@ -51,7 +52,7 @@ interface EEGState {
 
 export const useEEGStore = create<EEGState>((set, get) => ({
   eegData: null,
-  selectedChannel: 'Fp1',
+  selectedChannel: DEFAULT_CHANNEL_ID,
   bandPower: null,
   isStreaming: false,
   brainState: null,

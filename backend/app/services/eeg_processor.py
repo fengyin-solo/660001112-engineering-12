@@ -1,7 +1,9 @@
 import numpy as np
 from scipy import signal
 
-CHANNELS = ['Fp1','Fp2','F3','F4','C3','C4','P3','P4','O1','O2']
+from ..core.channel_config import get_channels
+
+CHANNELS = get_channels()
 SAMPLE_RATE = 256
 BANDS = {'delta': (0.5,4), 'theta': (4,8), 'alpha': (8,13), 'beta': (13,30), 'gamma': (30,100)}
 

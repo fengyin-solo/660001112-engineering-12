@@ -1,11 +1,6 @@
 import React from 'react';
 import { useEEGStore } from '../store/eeg';
-
-const CHANNEL_NAMES: Record<string, string> = {
-  Fp1: '左前额', Fp2: '右前额', F3: '左额', F4: '右额',
-  C3: '左中央', C4: '右中央', P3: '左顶', P4: '右顶',
-  O1: '左枕', O2: '右枕'
-};
+import { getChannelColor, getChannelDisplayName, getEffectiveChannelId } from '../config/channels';
 
 const ScoreBar: React.FC<{ label: string; value: number; color: string; icon: string }> = ({ label, value, color, icon }) => {
   return (
@@ -34,14 +29,19 @@ const ScoreBar: React.FC<{ label: string; value: number; color: string; icon: st
 
 export const BrainStateDashboard: React.FC = () => {
   const { brainState, selectedChannel, playbackMode, activeRecording, playbackState } = useEEGStore();
-  const channelName = CHANNEL_NAMES[selectedChannel] || selectedChannel;
+  const activeChannelId = getEffectiveChannelId(
+    selectedChannel,
+    playbackMode ? activeRecording?.channel : undefined,
+  );
+  const channelName = getChannelDisplayName(activeChannelId);
+  const activeChannelColor = getChannelColor(activeChannelId);
 
   if (!brainState) {
     return (
       <div style={{ padding: '16px', background: '#fff', borderRadius: '12px', margin: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div style={{ marginBottom: '16px', padding: '16px', background: 'linear-gradient(135deg, #1565c0, #0d47a1)', borderRadius: '10px', color: '#fff', textAlign: 'center' }}>
+        <div style={{ marginBottom: '16px', padding: '16px', background: activeChannelColor, borderRadius: '10px', color: '#fff', textAlign: 'center' }}>
           <div style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px' }}>当前关注通道</div>
-          <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '2px' }}>{selectedChannel}</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '2px' }}>{activeChannelId}</div>
           <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>{channelName}</div>
         </div>
         <h3 style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -59,21 +59,17 @@ export const BrainStateDashboard: React.FC = () => {
       <div style={{
         marginBottom: '16px',
         padding: '16px',
-        background: playbackMode
-          ? 'linear-gradient(135deg, #6a1b9a, #4a148c)'
-          : 'linear-gradient(135deg, #1565c0, #0d47a1)',
+        background: activeChannelColor,
         borderRadius: '10px',
         color: '#fff',
         textAlign: 'center',
-        boxShadow: playbackMode
-          ? '0 4px 12px rgba(106, 27, 154, 0.4)'
-          : '0 4px 12px rgba(21, 101, 192, 0.4)',
+        boxShadow: `0 4px 12px ${activeChannelColor}66`,
         transition: 'all 0.3s ease',
       }}>
         <div style={{ fontSize: '11px', opacity: 0.85, marginBottom: '4px' }}>
           {playbackMode ? '回放通道' : '当前关注通道'}
         </div>
-        <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '2px' }}>{selectedChannel}</div>
+        <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '2px' }}>{activeChannelId}</div>
         <div style={{ fontSize: '13px', opacity: 0.85, marginTop: '2px' }}>{channelName}</div>
         {playbackMode && activeRecording && (
           <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '6px' }}>
